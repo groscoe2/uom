@@ -88,6 +88,7 @@ system! {
         molar_mass::MolarMass,
         momentum::Momentum,
         power::Power,
+        power_rate::PowerRate,
         pressure::Pressure,
         ratio::Ratio,
         specific_heat_capacity::SpecificHeatCapacity,
