@@ -103,6 +103,7 @@ system! {
         velocity::Velocity,
         volume::Volume,
         volume_rate::VolumeRate,
+        inverse_velocity::InverseVelocity,
     }
 }
 
