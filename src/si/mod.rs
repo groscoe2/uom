@@ -72,6 +72,7 @@ system! {
         inductance::Inductance,
         information::Information,
         information_rate::InformationRate,
+        inverse_velocity::InverseVelocity,
         jerk::Jerk,
         length::Length,
         luminance::Luminance,
@@ -103,7 +104,6 @@ system! {
         velocity::Velocity,
         volume::Volume,
         volume_rate::VolumeRate,
-        inverse_velocity::InverseVelocity,
     }
 }
 
