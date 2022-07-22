@@ -27,7 +27,7 @@ Units of measurement is a crate that does automatic type-safe zero-cost
 
 ```toml
 [dependencies]
-uom = "0.32.0"
+uom = "0.33.0"
 ```
 
 and this to your crate root:
@@ -79,7 +79,7 @@ enabled by default. Features can be cherry-picked by using the `--no-default-fea
 ```toml
 [dependencies]
 uom = {
-    version = "0.32.0",
+    version = "0.33.0",
     default-features = false,
     features = [
         "autoconvert", # automatic base unit conversion.
@@ -87,6 +87,7 @@ uom = {
         "isize", "i8", "i16", "i32", "i64", "i128", # Signed integer storage types.
         "bigint", "biguint", # Arbitrary width integer storage types.
         "rational", "rational32", "rational64", "bigrational", # Integer ratio storage types.
+        "complex32", "complex64", # Complex floating point storage types.
         "f32", "f64", # Floating point storage types.
         "si", "std", # Built-in SI system and std library support.
         "use_serde", # Serde support.
@@ -99,10 +100,10 @@ uom = {
    The feature exists to account for compiler limitations where zero-cost code is not generated for
    non-floating point underlying storage types.
  * `usize`, `u8`, `u16`, `u32`, `u64`, `u128`, `isize`, `i8`, `i16`, `i32`, `i64`, `i128`, `bigint`,
-   `biguint`, `rational`, `rational32`, `rational64`, `bigrational`, `f32`, `f64` -- Features to
-   enable underlying storage types. At least one of these features must be enabled. `f32` and `f64`
-   are enabled by default. See the [Design](#design) section for implications of choosing different
-   underlying storage types.
+   `biguint`, `rational`, `rational32`, `rational64`, `bigrational`, `complex32`, `complex64`,
+   `f32`, `f64` -- Features to enable underlying storage types. At least one of these features must
+   be enabled. `f32` and `f64` are enabled by default. See the [Design](#design) section for
+   implications of choosing different underlying storage types.
  * `si` -- Feature to include the pre-built [International System of Units][si] (SI). Enabled by
    default.
  * `std` -- Feature to compile with standard library support. Disabling this feature compiles `uom`
@@ -134,7 +135,7 @@ storage type (e.g. `f32`).
 Alternative base units can be used by executing the macro defined for the system of quantities
 (`ISQ!` for the SI). `uom` supports `usize`, `u8`, `u16`, `u32`, `u64`, `u128`, `isize`, `i8`,
 `i16`, `i32`, `i64`, `i128`, `bigint`, `biguint`, `rational`, `rational32`, `rational64`,
-`bigrational`, `f32`, and `f64` as the underlying storage type.
+`bigrational`, `complex32`, `complex64`, `f32`, and `f64` as the underlying storage type.
 
 A consequence of normalizing values to the base unit is that some values may not be able to be
 represented or can't be precisely represented for floating point and rational underlying storage

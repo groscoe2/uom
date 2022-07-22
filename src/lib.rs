@@ -18,7 +18,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! uom = "0.32.0"
+//! uom = "0.33.0"
 //! ```
 //!
 //! and this to your crate root:
@@ -66,7 +66,7 @@
 //! ```toml
 //! [dependencies]
 //! uom = {
-//!     version = "0.32.0",
+//!     version = "0.33.0",
 //!     default-features = false,
 //!     features = [
 //!         "autoconvert", # automatic base unit conversion.
@@ -74,6 +74,7 @@
 //!         "isize", "i8", "i16", "i32", "i64", "i128", # Signed integer storage types.
 //!         "bigint", "biguint", # Arbitrary width integer storage types.
 //!         "rational", "rational32", "rational64", "bigrational", # Integer ratio storage types.
+//!         "complex32", "complex64", # Complex floating point storage types.
 //!         "f32", "f64", # Floating point storage types.
 //!         "si", "std", # Built-in SI system and std library support.
 //!         "use_serde", # Serde support.
@@ -86,11 +87,10 @@
 //!    directly interact. The feature exists to account for compiler limitations where zero-cost
 //!    code is not generated for non-floating point underlying storage types.
 //!  * `usize`, `u8`, `u16`, `u32`, `u64`, `u128`, `isize`, `i8`, `i16`, `i32`, `i64`, `i128`,
-//!    `bigint`, `biguint`, `rational`, `rational32`, `rational64`, `bigrational`, `f32`, `f64` --
-//!    Features to enable underlying storage types. At least one of these features must be enabled.
-//!    `f32` and `f64` are enabled by default. See the [Design](#design) section for implications
-//!    of choosing different
-//!    underlying storage types.
+//!    `bigint`, `biguint`, `rational`, `rational32`, `rational64`, `bigrational`, `complex32`,
+//!    `complex64`, `f32`, `f64` -- Features to enable underlying storage types. At least one of
+//!    these features must be enabled. `f32` and `f64` are enabled by default. See the
+//!    [Design](#design) section for implications of choosing different underlying storage types.
 //!  * `si` -- Feature to include the pre-built [International System of Units][si] (SI). Enabled by
 //!    default.
 //!  * `std` -- Feature to compile with standard library support. Disabling this feature compiles
@@ -122,7 +122,8 @@
 //! quantity. Alternative base units can be used by executing the macro defined for the system of
 //! quantities (`ISQ!` for the SI). `uom` supports `usize`, `u8`, `u16`, `u32`, `u64`, `u128`,
 //! `isize`, `i8`, `i16`, `i32`, `i64`, `i128`, `bigint`, `biguint`, `rational`, `rational32`,
-//! `rational64`, `bigrational`, `f32`, and `f64` as the underlying storage type.
+//! `rational64`, `bigrational`, `complex32`, `complex64`, `f32`, and `f64` as the underlying
+//! storage type.
 //!
 //! A consequence of normalizing values to the base unit is that some values may not be able to be
 //! represented or can't be precisely represented for floating point and rational underlying
@@ -176,11 +177,15 @@
 // Clippy lints.
 #![cfg_attr(
     feature = "cargo-clippy",
+    warn(
+        clippy::must_use_candidate,
+        clippy::return_self_not_must_use,
+    ),
     allow(
         clippy::deprecated_cfg_attr,
         clippy::excessive_precision,
         clippy::inconsistent_digit_grouping, // https://github.com/rust-lang/rust-clippy/issues/6096
-        clippy::inline_always
+        clippy::inline_always,
     )
 )]
 // Lints allowed in tests because they are unavoidable in the generic code when a type may or may
@@ -199,6 +204,7 @@
     feature = "i128",
     feature = "bigint", feature = "biguint",
     feature = "rational", feature = "rational32", feature = "rational64", feature = "bigrational",
+    feature = "complex32", feature = "complex64",
     feature = "f32", feature = "f64", )))]
 compile_error!("A least one underlying storage type must be enabled. See the features section of \
     uom documentation for available underlying storage type options.");
@@ -215,13 +221,20 @@ pub extern crate num_bigint;
 pub extern crate num_rational;
 
 #[doc(hidden)]
+#[cfg(feature = "complex-support")]
+pub extern crate num_complex;
+
+#[doc(hidden)]
 #[cfg(feature = "serde")]
 pub extern crate serde;
 
 #[doc(hidden)]
 pub extern crate typenum;
 
-#[cfg(all(test, any(feature = "f32", feature = "f64")))]
+#[cfg(all(
+    test,
+    any(feature = "f32", feature = "f64", feature = "complex32", feature = "complex64")
+))]
 #[macro_use]
 extern crate approx;
 #[cfg(test)]
@@ -283,6 +296,11 @@ pub mod num {
     #[cfg(any(feature = "rational-support", feature = "bigint-support"))]
     pub mod rational {
         pub use num_rational::*;
+    }
+
+    #[cfg(feature = "complex-support")]
+    pub mod complex {
+        pub use num_complex::*;
     }
 }
 
@@ -411,6 +429,7 @@ pub trait Conversion<V> {
     /// converting the given unit to the base unit for the quantity: `(value * coefficient()) +
     /// constant()`. Implementation should return the multiplicative identity (`Self::T::one()`) if
     /// no coefficient exists.
+    #[must_use = "method returns a new number and does not mutate the original value"]
     #[inline(always)]
     fn coefficient() -> Self::T {
         <Self::T as crate::num::One>::one()
@@ -421,6 +440,7 @@ pub trait Conversion<V> {
     /// constant()`. Implementation should return the additive identity (`Self::T::zero()`) if no
     /// constant exists. See [ConstantOp](enum.ConstantOp.html) documentation for details about
     /// parameter use to ensure the method optimizes correctly.
+    #[must_use = "method returns a new number and does not mutate the original value"]
     #[inline(always)]
     #[allow(unused_variables)]
     fn constant(op: ConstantOp) -> Self::T {
@@ -430,6 +450,7 @@ pub trait Conversion<V> {
     /// Instance [conversion factor](https://jcgm.bipm.org/vim/en/1.24.html).
     ///
     /// Default implementation returns the coefficient: `Self::coefficient()`.
+    #[must_use = "method returns a new number and does not mutate the original value"]
     #[inline(always)]
     fn conversion(&self) -> Self::T
     where
@@ -456,9 +477,11 @@ pub trait ConversionFactor<V>:
     + crate::num::One
 {
     /// Raises a `ConversionFactor<V>` to an integer power.
+    #[must_use = "method returns a new number and does not mutate the original value"]
     fn powi(self, e: i32) -> Self;
 
     /// Converts a `ConversionFactor<V>` into its underlying storage type.
+    #[must_use = "method returns a new number and does not mutate the original value"]
     fn value(self) -> V;
 }
 
@@ -641,6 +664,42 @@ storage_types! {
         #[inline(always)]
         fn value(self) -> V {
             self
+        }
+    }
+}
+
+storage_types! {
+    types: Complex;
+    impl crate::Conversion<V> for V {
+        type T = VV;
+
+        #[inline(always)]
+        fn constant(op: crate::ConstantOp) -> Self::T {
+            match op {
+                crate::ConstantOp::Add => -<Self::T as crate::num::Zero>::zero(),
+                crate::ConstantOp::Sub => <Self::T as crate::num::Zero>::zero(),
+            }
+        }
+
+        #[inline(always)]
+        fn conversion(&self) -> Self::T {
+            // Conversion factor is the norm of the number. Scaling with length again yields the
+            // same number.
+            self.norm()
+        }
+    }
+
+    impl crate::ConversionFactor<V> for VV {
+        #[inline(always)]
+        fn powi(self, e: i32) -> Self {
+            self.powi(e)
+        }
+
+        #[inline(always)]
+        fn value(self) -> V {
+            // Conversion by scaling (multiplication with only real number). Scaling a normalized
+            // number yields the original number again.
+            V::new(self, 0.0)
         }
     }
 }

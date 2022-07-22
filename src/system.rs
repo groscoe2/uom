@@ -173,12 +173,15 @@ macro_rules! system {
         /// [quantity]: https://jcgm.bipm.org/vim/en/1.1.html
         pub trait Unit: Copy {
             /// Unit abbreviation.
+            #[must_use = "method returns a static value"]
             fn abbreviation() -> &'static str;
 
             /// Unit singular description.
+            #[must_use = "method returns a static value"]
             fn singular() -> &'static str;
 
             /// Unit plural description.
+            #[must_use = "method returns a static value"]
             fn plural() -> &'static str;
         }
 
@@ -596,50 +599,10 @@ macro_rules! system {
             U: Units<V> + ?Sized,
             V: $crate::num::Num + $crate::Conversion<V>,
         {
-            /// Returns `true` if this value is `NAN` and `false` otherwise.
-            #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
-            #[inline(always)]
-            pub fn is_nan(self) -> bool
-            where
-                V: $crate::num::Float,
-            {
-                self.value.is_nan()
-            }
-
-            /// Returns `true` if this value is positive infinity or negative infinity and
-            /// `false` otherwise.
-            #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
-            #[inline(always)]
-            pub fn is_infinite(self) -> bool
-            where
-                V: $crate::num::Float,
-            {
-                self.value.is_infinite()
-            }
-
-            /// Returns `true` if this number is neither infinite nor `NAN`.
-            #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
-            #[inline(always)]
-            pub fn is_finite(self) -> bool
-            where
-                V: $crate::num::Float,
-            {
-                self.value.is_finite()
-            }
-
-            /// Returns `true` if the number is neither zero, infinite, subnormal, or `NAN`.
-            #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
-            #[inline(always)]
-            pub fn is_normal(self) -> bool
-            where
-                V: $crate::num::Float,
-            {
-                self.value.is_normal()
-            }
-
             /// Returns the floating point category of the number. If only one property is
             /// going to be tested, it is generally faster to use the specific predicate
             /// instead.
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn classify(self) -> $crate::lib::num::FpCategory
             where
@@ -649,45 +612,9 @@ macro_rules! system {
             }
 
             std! {
-            /// Takes the cubic root of a number.
-            ///
-            #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust")]
-            #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
-            /// # use uom::si::f32::*;
-            /// # use uom::si::volume::cubic_meter;
-            /// let l: Length = Volume::new::<cubic_meter>(8.0).cbrt();
-            /// ```
-            ///
-            /// The input type must have dimensions divisible by three:
-            ///
-            #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust,compile_fail")]
-            #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
-            /// # use uom::si::f32::*;
-            /// # use uom::si::area::square_meter;
-            /// // error[E0271]: type mismatch resolving ...
-            /// let r = Area::new::<square_meter>(8.0).cbrt();
-            /// ```
-            #[inline(always)]
-            pub fn cbrt(
-                self
-            ) -> Quantity<
-                $quantities<$($crate::typenum::PartialQuot<D::$symbol, $crate::typenum::P3>),+>,
-                U, V>
-            where
-                $(D::$symbol: $crate::lib::ops::PartialDiv<$crate::typenum::P3>,
-                <D::$symbol as $crate::lib::ops::PartialDiv<$crate::typenum::P3>>::Output: $crate::typenum::Integer,)+
-                D::Kind: $crate::marker::Div,
-                V: $crate::num::Float,
-            {
-                Quantity {
-                    dimension: $crate::lib::marker::PhantomData,
-                    units: $crate::lib::marker::PhantomData,
-                    value: self.value.cbrt(),
-                }
-            }
-
             autoconvert! {
             /// Calculates the length of the hypotenuse of a right-angle triangle given the legs.
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn hypot<Ur>(self, other: Quantity<D, Ur, V>) -> Self
             where
@@ -703,6 +630,7 @@ macro_rules! system {
 
             not_autoconvert! {
             /// Calculates the length of the hypotenuse of a right-angle triangle given the legs.
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn hypot(self, other: Self) -> Self
             where
@@ -717,6 +645,7 @@ macro_rules! system {
 
             /// Computes the absolute value of `self`. Returns `NAN` if the quantity is
             /// `NAN`.
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn abs(self) -> Self
             where
@@ -735,6 +664,7 @@ macro_rules! system {
             /// * `-1.0` of the base unit if the number is negative, `-0.0`, or
             ///   `NEG_INFINITY`.
             /// * `NAN` if the number is `NAN`.
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn signum(self) -> Self
             where
@@ -750,6 +680,7 @@ macro_rules! system {
             /// Returns `true` if `self`'s sign bit is positive, including `+0.0` and
             /// `INFINITY`.
             #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn is_sign_positive(self) -> bool
             where
@@ -761,6 +692,7 @@ macro_rules! system {
             /// Returns `true` if `self`'s sign is negative, including `-0.0` and
             /// `NEG_INFINITY`.
             #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn is_sign_negative(self) -> bool
             where
@@ -768,39 +700,6 @@ macro_rules! system {
             {
                 self.value.is_sign_negative()
             }
-
-            std! {
-            /// Fused multiply-add. Computes `(self * a) + b` with only one rounding error.
-            /// This produces a more accurate result with better performance than a separate
-            /// multiplication operation followed by an add.
-            ///
-            /// ## Generic Parameters
-            /// * `Da`: Dimension for parameter `a`.
-            /// * `Ua`: Base units for parameter `a`.
-            /// * `Ub`: Base units for parameter `b`.
-            #[inline(always)]
-            pub fn mul_add<Da, Ua, Ub>(
-                self,
-                a: Quantity<Da, Ua, V>,
-                b: Quantity<$quantities<$($crate::typenum::Sum<D::$symbol, Da::$symbol>),+>, Ub, V>,
-            ) -> Quantity<$quantities<$($crate::typenum::Sum<D::$symbol, Da::$symbol>),+>, U, V>
-            where
-                $(D::$symbol: $crate::lib::ops::Add<Da::$symbol>,
-                <D::$symbol as $crate::lib::ops::Add<Da::$symbol>>::Output: $crate::typenum::Integer,)+
-                D::Kind: $crate::marker::Mul,
-                V: $crate::num::Float,
-                Da: Dimension + ?Sized,
-                Da::Kind: $crate::marker::Mul,
-                Ua: Units<V> + ?Sized,
-                Ub: Units<V> + ?Sized,
-            {
-                // (self * a) + b
-                Quantity {
-                    dimension: $crate::lib::marker::PhantomData,
-                    units: $crate::lib::marker::PhantomData,
-                    value: self.value.mul_add(a.value, b.value),
-                }
-            }}
 
             /// Takes the reciprocal (inverse) of a number, `1/x`.
             ///
@@ -810,6 +709,7 @@ macro_rules! system {
             /// # use uom::si::time::second;
             /// let f: Frequency = Time::new::<second>(1.0).recip();
             /// ```
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn recip(
                 self
@@ -827,77 +727,8 @@ macro_rules! system {
                 }
             }
 
-            std! {
-            /// Raises a quantity to an integer power.
-            ///
-            #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust")]
-            #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
-            /// # use uom::si::f32::*;
-            /// # use uom::si::length::meter;
-            /// use uom::typenum::P2;
-            ///
-            /// let a: Area = Length::new::<meter>(3.0).powi(P2::new());
-            /// ```
-            ///
-            /// ## Generic Parameters
-            /// * `E`: `typenum::Integer` power.
-            #[inline(always)]
-            pub fn powi<E>(
-                self, _e: E
-            ) -> Quantity<$quantities<$($crate::typenum::Prod<D::$symbol, E>),+>, U, V>
-            where
-                $(D::$symbol: $crate::lib::ops::Mul<E>,
-                <D::$symbol as $crate::lib::ops::Mul<E>>::Output: $crate::typenum::Integer,)+
-                D::Kind: $crate::marker::Mul,
-                E: $crate::typenum::Integer,
-                V: $crate::num::Float,
-            {
-                Quantity {
-                    dimension: $crate::lib::marker::PhantomData,
-                    units: $crate::lib::marker::PhantomData,
-                    value: self.value.powi(E::to_i32()),
-                }
-            }
-
-            /// Takes the square root of a number. Returns `NAN` if `self` is a negative
-            /// number.
-            ///
-            #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust")]
-            #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
-            /// # use uom::si::f32::*;
-            /// # use uom::si::area::square_meter;
-            /// let l: Length = Area::new::<square_meter>(4.0).sqrt();
-            /// ```
-            ///
-            /// The input type must have dimensions divisible by two:
-            ///
-            #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust,compile_fail")]
-            #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
-            /// # use uom::si::f32::*;
-            /// # use uom::si::length::meter;
-            /// // error[E0271]: type mismatch resolving ...
-            /// let r = Length::new::<meter>(4.0).sqrt();
-            /// ```
-            #[inline(always)]
-            pub fn sqrt(
-                self
-            ) -> Quantity<
-                $quantities<$($crate::typenum::PartialQuot<D::$symbol, $crate::typenum::P2>),+>,
-                U, V>
-            where
-                $(D::$symbol: $crate::typenum::PartialDiv<$crate::typenum::P2>,
-                <D::$symbol as $crate::typenum::PartialDiv<$crate::typenum::P2>>::Output: $crate::typenum::Integer,)+
-                D::Kind: $crate::marker::Div,
-                V: $crate::num::Float,
-            {
-                Quantity {
-                    dimension: $crate::lib::marker::PhantomData,
-                    units: $crate::lib::marker::PhantomData,
-                    value: self.value.sqrt(),
-                }
-            }}
-
             /// Returns the maximum of the two quantities.
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn max(self, other: Self) -> Self
             where
@@ -911,6 +742,7 @@ macro_rules! system {
             }
 
             /// Returns the minimum of the two quantities.
+            #[must_use = "method returns a new number and does not mutate the original value"]
             #[inline(always)]
             pub fn min(self, other: Self) -> Self
             where
@@ -920,6 +752,202 @@ macro_rules! system {
                     dimension: $crate::lib::marker::PhantomData,
                     units: $crate::lib::marker::PhantomData,
                     value: self.value.min(other.value),
+                }
+            }
+        }
+
+        // Explicitly definte floating point methods for float and complex storage types.
+        // `Complex<T>` doesn't implement `Float`/`FloatCore`, but it does implement these methods
+        // when the underlying type, `T`, implements `FloatCore`.
+        mod float {
+            storage_types! {
+                types: Float, Complex;
+
+                use super::super::*;
+
+                impl<D, U> Quantity<D, U, V>
+                where
+                    D: Dimension + ?Sized,
+                    U: Units<V> + ?Sized,
+                {
+                    /// Returns `true` if this value is `NAN` and `false` otherwise.
+                    #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
+                    #[must_use = "method returns a new number and does not mutate the original value"]
+                    #[inline(always)]
+                    pub fn is_nan(self) -> bool
+                    {
+                        self.value.is_nan()
+                    }
+
+                    /// Returns `true` if this value is positive infinity or negative infinity and
+                    /// `false` otherwise.
+                    #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
+                    #[must_use = "method returns a new number and does not mutate the original value"]
+                    #[inline(always)]
+                    pub fn is_infinite(self) -> bool
+                    {
+                        self.value.is_infinite()
+                    }
+
+                    /// Returns `true` if this number is neither infinite nor `NAN`.
+                    #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
+                    #[must_use = "method returns a new number and does not mutate the original value"]
+                    #[inline(always)]
+                    pub fn is_finite(self) -> bool
+                    {
+                        self.value.is_finite()
+                    }
+
+                    /// Returns `true` if the number is neither zero, infinite, subnormal, or `NAN`.
+                    #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
+                    #[must_use = "method returns a new number and does not mutate the original value"]
+                    #[inline(always)]
+                    pub fn is_normal(self) -> bool
+                    {
+                        self.value.is_normal()
+                    }
+
+                    std! {
+                    /// Takes the cubic root of a number.
+                    ///
+                    #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust")]
+                    #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
+                    /// # use uom::si::f32::*;
+                    /// # use uom::si::volume::cubic_meter;
+                    /// let l: Length = Volume::new::<cubic_meter>(8.0).cbrt();
+                    /// ```
+                    ///
+                    /// The input type must have dimensions divisible by three:
+                    ///
+                    #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust,compile_fail")]
+                    #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
+                    /// # use uom::si::f32::*;
+                    /// # use uom::si::area::square_meter;
+                    /// // error[E0271]: type mismatch resolving ...
+                    /// let r = Area::new::<square_meter>(8.0).cbrt();
+                    /// ```
+                    #[must_use = "method returns a new number and does not mutate the original value"]
+                    #[inline(always)]
+                    pub fn cbrt(
+                        self
+                    ) -> Quantity<
+                        $quantities<$($crate::typenum::PartialQuot<D::$symbol, $crate::typenum::P3>),+>,
+                        U, V>
+                    where
+                        $(D::$symbol: $crate::lib::ops::PartialDiv<$crate::typenum::P3>,
+                        <D::$symbol as $crate::lib::ops::PartialDiv<$crate::typenum::P3>>::Output: $crate::typenum::Integer,)+
+                        D::Kind: $crate::marker::Div,
+                    {
+                        Quantity {
+                            dimension: $crate::lib::marker::PhantomData,
+                            units: $crate::lib::marker::PhantomData,
+                            value: self.value.cbrt(),
+                        }
+                    }
+
+                    /// Fused multiply-add. Computes `(self * a) + b` with only one rounding error.
+                    /// This produces a more accurate result with better performance than a separate
+                    /// multiplication operation followed by an add.
+                    ///
+                    /// ## Generic Parameters
+                    /// * `Da`: Dimension for parameter `a`.
+                    /// * `Ua`: Base units for parameter `a`.
+                    /// * `Ub`: Base units for parameter `b`.
+                    #[must_use = "method returns a new number and does not mutate the original value"]
+                    #[inline(always)]
+                    pub fn mul_add<Da, Ua, Ub>(
+                        self,
+                        a: Quantity<Da, Ua, V>,
+                        b: Quantity<$quantities<$($crate::typenum::Sum<D::$symbol, Da::$symbol>),+>, Ub, V>,
+                    ) -> Quantity<$quantities<$($crate::typenum::Sum<D::$symbol, Da::$symbol>),+>, U, V>
+                    where
+                        $(D::$symbol: $crate::lib::ops::Add<Da::$symbol>,
+                        <D::$symbol as $crate::lib::ops::Add<Da::$symbol>>::Output: $crate::typenum::Integer,)+
+                        D::Kind: $crate::marker::Mul,
+                        Da: Dimension + ?Sized,
+                        Da::Kind: $crate::marker::Mul,
+                        Ua: Units<V> + ?Sized,
+                        Ub: Units<V> + ?Sized,
+                    {
+                        #[allow(unused_imports)]
+                        use $crate::num_traits::MulAdd;
+
+                        // (self * a) + b
+                        Quantity {
+                            dimension: $crate::lib::marker::PhantomData,
+                            units: $crate::lib::marker::PhantomData,
+                            value: self.value.mul_add(a.value, b.value),
+                        }
+                    }
+
+                    /// Raises a quantity to an integer power.
+                    ///
+                    #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust")]
+                    #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
+                    /// # use uom::si::f32::*;
+                    /// # use uom::si::length::meter;
+                    /// use uom::typenum::P2;
+                    ///
+                    /// let a: Area = Length::new::<meter>(3.0).powi(P2::new());
+                    /// ```
+                    ///
+                    /// ## Generic Parameters
+                    /// * `E`: `typenum::Integer` power.
+                    #[must_use = "method returns a new number and does not mutate the original value"]
+                    #[inline(always)]
+                    pub fn powi<E>(
+                        self, _e: E
+                    ) -> Quantity<$quantities<$($crate::typenum::Prod<D::$symbol, E>),+>, U, V>
+                    where
+                        $(D::$symbol: $crate::lib::ops::Mul<E>,
+                        <D::$symbol as $crate::lib::ops::Mul<E>>::Output: $crate::typenum::Integer,)+
+                        D::Kind: $crate::marker::Mul,
+                        E: $crate::typenum::Integer,
+                    {
+                        Quantity {
+                            dimension: $crate::lib::marker::PhantomData,
+                            units: $crate::lib::marker::PhantomData,
+                            value: self.value.powi(E::to_i32()),
+                        }
+                    }
+
+                    /// Takes the square root of a number. Returns `NAN` if `self` is a negative
+                    /// number.
+                    ///
+                    #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust")]
+                    #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
+                    /// # use uom::si::f32::*;
+                    /// # use uom::si::area::square_meter;
+                    /// let l: Length = Area::new::<square_meter>(4.0).sqrt();
+                    /// ```
+                    ///
+                    /// The input type must have dimensions divisible by two:
+                    ///
+                    #[cfg_attr(all(feature = "si", feature = "f32"), doc = " ```rust,compile_fail")]
+                    #[cfg_attr(not(all(feature = "si", feature = "f32")), doc = " ```rust,ignore")]
+                    /// # use uom::si::f32::*;
+                    /// # use uom::si::length::meter;
+                    /// // error[E0271]: type mismatch resolving ...
+                    /// let r = Length::new::<meter>(4.0).sqrt();
+                    /// ```
+                    #[must_use = "method returns a new number and does not mutate the original value"]
+                    #[inline(always)]
+                    pub fn sqrt(
+                        self
+                    ) -> Quantity<
+                        $quantities<$($crate::typenum::PartialQuot<D::$symbol, $crate::typenum::P2>),+>,
+                        U, V>
+                    where
+                        $(D::$symbol: $crate::typenum::PartialDiv<$crate::typenum::P2>,
+                        <D::$symbol as $crate::typenum::PartialDiv<$crate::typenum::P2>>::Output: $crate::typenum::Integer,)+
+                        D::Kind: $crate::marker::Div,
+                    {
+                        Quantity {
+                            dimension: $crate::lib::marker::PhantomData,
+                            units: $crate::lib::marker::PhantomData,
+                            value: self.value.sqrt(),
+                        }
+                    }}
                 }
             }
         }
@@ -1518,10 +1546,11 @@ macro_rules! system {
         /// * `$system`: Path to the module where the [`system!`](macro.system.html) macro was run
         ///   (e.g. `uom::si`).
         /// * `$V`: Underlying value storage type (e.g. `f32`).
-        /// * `$U`: Optional. Base units. Pass as a tuple with the desired units: `(meter, kilogram,
-        ///   second, ampere, kelvin, mole, candela)`. The system's base units will be used if no
-        ///   value is provided. Note that a unit with a non-zero constant factor is not currently
-        ///   supported as a base unit.
+        /// * `$U`: Optional. Base units. Pass as a tuple with the desired units: (e.g. `(meter,
+        ///   kilogram, second, ampere, kelvin, mole, candela)`). The system's base units will be
+        ///   used if no value is provided. When a value is provided a new trait type alias,
+        ///   `Units`, is defined. Note that a unit with a non-zero constant factor is not
+        ///   currently supported as a base unit.
         ///
         /// An example invocation is given below for a meter-kilogram-second system setup in the
         /// module `mks` with a system of quantities name `Q`. The `#[macro_use]` attribute must be
@@ -1628,7 +1657,13 @@ macro_rules! system {
     ) => {
         use $path as __system;
 
-        type Units = dyn __system::Units<$V, $($name = __system::$name::$U,)+>;
+        /// `Units` trait type alias to identify a [system of units][units] based on the set of
+        /// given [base units][base] of a [system of quantities][quantities].
+        ///
+        /// [units]: https://jcgm.bipm.org/vim/en/1.13.html
+        /// [base]: https://jcgm.bipm.org/vim/en/1.10.html
+        /// [quantities]: https://jcgm.bipm.org/vim/en/1.3.html
+        pub type Units = dyn __system::Units<$V, $($name = __system::$name::$U,)+>;
 
         $(/// [`Quantity`](struct.Quantity.html) type alias using the given base units.
         #[allow(dead_code)]
