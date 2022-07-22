@@ -1,7 +1,7 @@
-//! InverseVelocity (base unit second per meter, s · m⁻¹).
+//! Inverse velocity (base unit second per meter, s · m⁻¹).
 
 quantity! {
-    /// InverseVelocity (base unit second per meter, s · m⁻¹).
+    /// Inverse velocity (base unit second per meter, s · m⁻¹).
     quantity: InverseVelocity; "inverse velocity";
     /// Dimension of inverse velocity, TL⁻¹ (base unit second per meter, s · m⁻¹).
     dimension: ISQ<
